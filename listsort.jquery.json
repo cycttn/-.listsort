@@ -1,0 +1,11 @@
+{
+    "name": "listsort",
+    "version": "0.1.0",
+    "title": "Simple plugin for sorting lists",
+    "author": {"name": "Bryan Cua"},
+    "licenses": [{"type": "MIT", "url": "http://opensource.org/licenses/MIT"}],
+    "dependencies": {"jquery": "2.0.2"},
+    "description": "$.listSort is a lightweight plugin that allows you to sort any list (with header) or table. It tries to determine if the element's value is a date (if Datejs is loaded), numeric, or a string.",
+    "homepage": "http://js.lovelotte.net/jQ/listsort",
+    "demo": "http://js.lovelotte.net/jQ/listsort/demo.php"
+}
