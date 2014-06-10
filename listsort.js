@@ -66,8 +66,8 @@ THE SOFTWARE.
             this.$els = this.$wrap.find( this.options['list-els'] );
         }
        
-        this.currSort = this.options['sort-col']; 
-        this.sortDir = this.options['sort-dir']; //asc; , -1 is desc; 0 is unsorted; 
+        this.currSort = -1; //this.options['sort-col']; 
+        this.sortDir = this.options['sort-dir']; //1 = asc; , -1 is desc; 0 is unsorted; 
         
         this.sorted = {}; 
         
@@ -118,25 +118,29 @@ THE SOFTWARE.
         
         this.$this.trigger('listsort::init', this);
         
-        if( this.sortDir != 0 ) this.sort(this.currSort); //trigger sort!
+        if( this.sortDir != 0 ) this.sort(this.options['sort-col'], this.sortDir); //trigger sort!
     };
     
     /**
      * Sort on column i
      * @param {type} i
      */
-    $.listSort.prototype.sort = function(i){
+    $.listSort.prototype.sort = function(i, s){
         this.$this.trigger('listsort::sorting', this);
         
-        if( this.currSort == i ){
-            switch(this.sortDir){
-                case -1: case 0: this.sortDir++; break;
-                default: this.sortDir = -1; 
+        if( this.currSort == i){
+            if( !s ){
+                switch(this.sortDir){
+                    case -1: case 0: this.sortDir++; break;
+                    default: this.sortDir = -1; 
+                }                
             }
         }else{
             this.$head.eq(this.currSort).removeClass('asc desc'); //Remove sort from other column
             this.currSort = i; 
-            this.sortDir = 1; //ASC
+            
+            if( !s ) this.sortDir = 1; //ASC
+            else this.sortDir = s; 
         }
 
         switch(this.sortDir){
@@ -177,7 +181,7 @@ THE SOFTWARE.
         }                
     };
     
-    $.listSort.prototype.asc = function(i){
+    $.listSort.prototype.desc = function(i){
         this.$head.eq(i).removeClass(this.options.classes.desc).addClass(this.options.classes.asc);
         
         var sorted = this.getSortedElements(i); //get sorted elements
@@ -188,7 +192,7 @@ THE SOFTWARE.
         }        
     };
     
-    $.listSort.prototype.desc = function(i){
+    $.listSort.prototype.asc = function(i){
         this.$head.eq(i).removeClass(this.options.classes.asc).addClass(this.options.classes.desc);
         
         var sorted = this.getSortedElements(i); //get sorted elements
@@ -264,7 +268,7 @@ THE SOFTWARE.
 
             if( $.isNumeric(val) ){ //change to number if numeric
                 val = parseInt(val); 
-            }else if(Date && Date.parse){ //if a date, and Datejs is loaded. 
+            }else if(Date && Date.parse){
                 var dt = Date.parse(val);
                 if( dt ) val = dt.getTime();
             }
