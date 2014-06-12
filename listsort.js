@@ -79,7 +79,7 @@ THE SOFTWARE.
             }
         }else{
             //Go through what's in sort-cols
-            for(var i in this.options['sort-cols'].length){
+            for(var i in this.options['sort-cols']){
                 var val = this.options['sort-cols'][i];
                 if( $.isNumeric(val) ){ //If numeric; parse the number and set the sortCols entry
                     val = parseInt(val);
@@ -181,7 +181,7 @@ THE SOFTWARE.
         }                
     };
     
-    $.listSort.prototype.desc = function(i){
+    $.listSort.prototype.asc = function(i){
         this.$head.eq(i).removeClass(this.options.classes.desc).addClass(this.options.classes.asc);
         
         var sorted = this.getSortedElements(i); //get sorted elements
@@ -192,7 +192,7 @@ THE SOFTWARE.
         }        
     };
     
-    $.listSort.prototype.asc = function(i){
+    $.listSort.prototype.desc = function(i){
         this.$head.eq(i).removeClass(this.options.classes.asc).addClass(this.options.classes.desc);
         
         var sorted = this.getSortedElements(i); //get sorted elements
