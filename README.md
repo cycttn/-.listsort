@@ -8,6 +8,6 @@ For more information, go to http://js.lovelotte.net/jQ/listsort
 Changelog
 =========
 
-0.2.1
+0.1.2
 -----
 Added functionality for 'sort-cols'
