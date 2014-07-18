@@ -1,28 +1,4 @@
 /**
-The MIT License (MIT)
-Copyright (c) <2014> <lovelotte.net>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
- */;
-
-
-/**
  * Sorting for lists;
  * 
  * @param {type} $
@@ -54,7 +30,7 @@ THE SOFTWARE.
     $.listSort = function(options, dom){
         this.options = $.extend({}, defaults, options);
         this.$this = $(dom); 
-        this.$this.trigger('listsort::preinit', this.options);
+        this.$this.trigger('listsort::preinit');
         
         this.$wrap = this.$this.find( this.options['list-wrapper'] );
         
@@ -66,8 +42,8 @@ THE SOFTWARE.
             this.$els = this.$wrap.find( this.options['list-els'] );
         }
        
-        this.currSort = -1; //this.options['sort-col']; 
-        this.sortDir = this.options['sort-dir']; //1 = asc; , -1 is desc; 0 is unsorted; 
+        this.currSort = this.options['sort-col']; 
+        this.sortDir = this.options['sort-dir']; //asc; , -1 is desc; 0 is unsorted; 
         
         this.sorted = {}; 
         
@@ -79,7 +55,7 @@ THE SOFTWARE.
             }
         }else{
             //Go through what's in sort-cols
-            for(var i in this.options['sort-cols']){
+            for(var i in this.options['sort-cols'].length){
                 var val = this.options['sort-cols'][i];
                 if( $.isNumeric(val) ){ //If numeric; parse the number and set the sortCols entry
                     val = parseInt(val);
@@ -103,44 +79,27 @@ THE SOFTWARE.
             });
         }
         
-        //If has inputs or contentEditable!
-        var editable = this.$wrap.find('input, textarea, checkbox, div[contenteditable=\'true\']');
-        if( editable.size() != 0 ){
-            editable.filter('input, textarea, checkbox').change(function(){
-                __this.sorted = {}; 
-            });
-            
-            editable.filter('div').keyup(function(){
-                __this.sorted = {}; 
-            });
-        }
+        this.$this.trigger('listsort::init');
         
-        
-        this.$this.trigger('listsort::init', this);
-        
-        if( this.sortDir != 0 ) this.sort(this.options['sort-col'], this.sortDir); //trigger sort!
+        if( this.sortDir != 0 ) this.sort(this.currSort); //trigger sort!
     };
     
     /**
      * Sort on column i
      * @param {type} i
      */
-    $.listSort.prototype.sort = function(i, s){
-        this.$this.trigger('listsort::sorting', this);
+    $.listSort.prototype.sort = function(i){
+        this.$this.trigger('sorting.listsort', [this] );
         
-        if( this.currSort == i){
-            if( !s ){
-                switch(this.sortDir){
-                    case -1: case 0: this.sortDir++; break;
-                    default: this.sortDir = -1; 
-                }                
+        if( this.currSort == i ){
+            switch(this.sortDir){
+                case -1: case 0: this.sortDir++; break;
+                default: this.sortDir = -1; 
             }
         }else{
             this.$head.eq(this.currSort).removeClass('asc desc'); //Remove sort from other column
             this.currSort = i; 
-            
-            if( !s ) this.sortDir = 1; //ASC
-            else this.sortDir = s; 
+            this.sortDir = 1; //ASC
         }
 
         switch(this.sortDir){
@@ -149,7 +108,7 @@ THE SOFTWARE.
             case -1: this.desc(i); 
         }
         
-        this.$this.trigger('listsort::sorted', this, i);        
+        this.$this.trigger('sorted.listsort', this);        
     };
     
     /**
@@ -168,11 +127,13 @@ THE SOFTWARE.
     $.listSort.prototype.delete = function($el){
         var i = this.$els.index( $el );
         this.$els = this.$els.not($el);
-        this.sorted = {};         
+        
+        //TODO: Remove from sorted! 
+        
     };
     
     $.listSort.prototype.toOriginal = function(i){
-        this.$head.eq(i).removeClass(this.options.classes.asc + ' ' + this.options.classes.desc);
+        this.$head.eq(i).removeClass('asc desc');
         //this.$els contains original array; 
         
         var $wrap = ( this.$wrap.size() > 0 )? this.$wrap : this.$this; 
@@ -182,7 +143,7 @@ THE SOFTWARE.
     };
     
     $.listSort.prototype.asc = function(i){
-        this.$head.eq(i).removeClass(this.options.classes.desc).addClass(this.options.classes.asc);
+        this.$head.eq(i).removeClass('desc').addClass('asc');
         
         var sorted = this.getSortedElements(i); //get sorted elements
         
@@ -193,7 +154,7 @@ THE SOFTWARE.
     };
     
     $.listSort.prototype.desc = function(i){
-        this.$head.eq(i).removeClass(this.options.classes.asc).addClass(this.options.classes.desc);
+        this.$head.eq(i).removeClass('asc').addClass('desc');
         
         var sorted = this.getSortedElements(i); //get sorted elements
         
@@ -206,17 +167,15 @@ THE SOFTWARE.
     
     $.listSort.prototype.getSortedElements = function(i){
         if( i in this.sorted ) return this.sorted[i];
-        else{
-            var obj = {}; 
-            
-            for(var j=0; j<this.$els.size();j++ ){
-                obj[j] = this.options.getValue.call( this.$els.eq(j), this.options['list-param'], i );
-            }
-            
-            var sorted = sortObject(obj);
-            this.sorted[i] = sorted; 
-            return sorted;
+        var obj = {}; 
+
+        for(var j=0; j<this.$els.size();j++ ){
+            obj[j] = this.options.getValue.call( this.$els.eq(j), this.options['list-param'], i );
         }
+
+        var sorted = sortObject(obj);
+        this.sorted[i] = sorted; 
+        return sorted;
     };
     
     $.listSort.prototype.$get = function(){ return this.$this; };
@@ -246,8 +205,8 @@ THE SOFTWARE.
         }
         
         var inputs = $obj.find('input, textarea, checkbox');
-        if( inputs.size() == 0 ) return $obj.text(); 
-        else return inputs.eq(0).val(); //return the value of the first input!
+        if( inputs.size() == 0 ) return $obj.text().trim(); 
+        else return inputs.eq(0).val().trim(); //return the value of the first input!
     }
     
     /**
@@ -268,12 +227,12 @@ THE SOFTWARE.
 
             if( $.isNumeric(val) ){ //change to number if numeric
                 val = parseInt(val); 
-            }else if(Date && Date.parse){
-                var dt = Date.parse(val);
-                if( dt ) val = dt.getTime();
+            }else{
+                var dt = Date.parse(val); 
+                if( dt ) val = dt.getTime(); 
             }
 
-            addToSortedArray(i, val);
+            addToSortedArray(i, val);        
         }
 
         //Change arr to only indices
@@ -341,7 +300,6 @@ THE SOFTWARE.
 
         }    
     };    
+        
     
 })(jQuery);
-
-

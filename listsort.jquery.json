@@ -1,6 +1,6 @@
 {
     "name": "listsort",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "title": "Simple plugin for sorting lists",
     "author": {"name": "Bryan Cua"},
     "licenses": [{"type": "MIT", "url": "http://opensource.org/licenses/MIT"}],
